@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Chicken Treat POS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  font-family: Arial, sans-serif;
+  background: #fff3eb;
+  margin: 0;
+  padding: 10px;
+}
+
+/* HEADER */
+.header {
+  text-align: center;
+}
+.header img {
+  width: 160px;
+}
+.header h2 {
+  margin: 5px 0;
+}
+.header p {
+  margin: 2px 0;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 10px;
+}
+
+/* ITEM CARD */
+.item {
+  background: #fff;
+  border-radius: 12px;
+  padding: 8px;
+  text-align: center;
+  box-shadow: 0 3px 6px rgba(0,0,0,.15);
+}
+.item img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+.item b {
+  display: block;
+  margin-top: 5px;
+}
+.price {
+  font-weight: bold;
+}
+
+/* CONTROLS */
+.controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 6px;
+}
+.controls button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: #d84315;
+  color: #fff;
+  font-size: 18px;
+}
+.controls span {
+  margin: 0 10px;
+  font-size: 18px;
+}
+
+/* TOTAL */
+.total {
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+  margin: 12px 0;
+}
+
+/* BUTTONS */
+.btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 6px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+}
+.green { background: #2e7d32; }
+.red   { background: #c62828; }
+.gray  { background: #455a64; }
+
+/* INPUT */
+select, input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 6px;
+  font-size: 16px;
+}
+
+/* BOX */
+.box {
+  background: #eee;
+  padding: 10px;
+  border-radius: 10px;
+  margin-top: 12px;
+}
+
+/* HISTORY */
+.history {
+  max-height: 260px;
+  overflow-y: auto;
+  font-size: 14px;
+}
+.history div {
+  border-bottom: 1px solid #ccc;
+  padding: 6px 0;
+}
+
+/* PRINT ONLY BILL */
+@media print {
+  body * { display: none !important; }
+  #printArea, #printArea * { display: block !important; }
+  #printArea {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <img src="logo.jpg">
+  <h2>CHICKEN TREATS</h2>
+  <p>Bill No: <span id="billNoDisplay"></span></p>
+</div>
+
+<!-- ITEMS -->
+<div class="grid">
+
+<div class="item">
+  <img src="spl_pav.jpg">
+  <b>Spl Chicken Pav Baji</b>
+  <div class="price">₹120</div>
+  <div class="controls">
+    <button onclick="removeItem('spl')">−</button>
+    <span id="spl">0</span>
+    <button onclick="addItem('spl',120)">+</button>
+  </div>
+</div>
+
+<div class="item">
+  <img src="pav_bhaji.jpg">
+  <b>Chicken Pav Baji</b>
+  <div class="price">₹100</div>
+  <div class="controls">
+    <button onclick="removeItem('pav')">−</button>
+    <span id="pav">0</span>
+    <button onclick="addItem('pav',100)">+</button>
+  </div>
+</div>
+
+<div class="item">
+  <img src="chicken_chat.jpeg">
+  <b>Chicken Chat</b>
+  <div class="price">₹60</div>
+  <div class="controls">
+    <button onclick="removeItem('chat')">−</button>
+    <span id="chat">0</span>
+    <button onclick="addItem('chat',60)">+</button>
+  </div>
+</div>
+
+<div class="item">
+  <img src="chicken_puri.png">
+  <b>Chicken Puri</b>
+  <div class="price">₹50</div>
+  <div class="controls">
+    <button onclick="removeItem('puri')">−</button>
+    <span id="puri">0</span>
+    <button onclick="addItem('puri',50)">+</button>
+  </div>
+</div>
+
+<div class="item">
+  <img src="parcel.jpg">
+  <b>Parcel</b>
+  <div class="price">₹10</div>
+  <div class="controls">
+    <button onclick="removeItem('parcel')">−</button>
+    <span id="parcel">0</span>
+    <button onclick="addItem('parcel',10)">+</button>
+  </div>
+</div>
+
+</div>
+
+<!-- TOTAL -->
+<div class="total">
+  Bill Total ₹<span id="total">0</span>
+</div>
+
+<!-- PAYMENT -->
+<select id="payment">
+  <option value="CASH">CASH</option>
+  <option value="UPI">UPI</option>
+</select>
+
+<button class="btn green" onclick="previewBill()">PREVIEW & PRINT</button>
+<button class="btn red" onclick="clearBill()">CLEAR BILL</button>
+
+<!-- SALES -->
+<div class="box">
+  <h3>Total Sales</h3>
+  ₹<b><span id="dailySales">0</span></b>
+  <button class="btn gray" onclick="resetSales()">Reset Sales</button>
+</div>
+
+<!-- BILL NUMBER CONTROL -->
+<div class="box">
+  <h3>Set Bill Number</h3>
+  <input type="number" id="setBill" placeholder="Enter Bill Number">
+  <button class="btn gray" onclick="setBillNo()">Update Bill No</button>
+</div>
+
+<!-- HISTORY -->
+<div class="box">
+  <h3>Transaction History</h3>
+  <div class="history" id="history"></div>
+  <button class="btn red" onclick="clearHistory()">Clear History</button>
+</div>
+
+<!-- PRINT AREA -->
+<div id="printArea" style="display:none">
+<pre id="billText" style="font-family: monospace; font-size:14px;"></pre>
+</div>
+
+<script>
+let prices = { spl:120, pav:100, chat:60, puri:50, parcel:10 };
+let qty = { spl:0, pav:0, chat:0, puri:0, parcel:0 };
+let total = 0;
+
+let billNo = parseInt(localStorage.getItem("billNo")) || 1;
+let dailySales = parseInt(localStorage.getItem("dailySales")) || 0;
+let history = JSON.parse(localStorage.getItem("history")) || [];
+
+document.getElementById("billNoDisplay").innerText = billNo;
+document.getElementById("dailySales").innerText = dailySales;
+renderHistory();
+
+function addItem(i,p){ qty[i]++; total+=p; update(i); }
+function removeItem(i){ if(qty[i]>0){ qty[i]--; total-=prices[i]; update(i); } }
+function update(i){
+  document.getElementById(i).innerText = qty[i];
+  document.getElementById("total").innerText = total;
+}
+
+function previewBill(){
+  if(total === 0){ alert("Add items first"); return; }
+
+  let d = new Date();
+  let date = d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
+  let time = d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+  let pay = document.getElementById("payment").value;
+
+  let text = "";
+  text += "            CHICKEN TREATS\n";
+  text += "---------------------------------------\n";
+  text += `Date: ${date}\n`;
+  text += `Time: ${time}\n`;
+  text += `Bill No: ${billNo}\n`;
+  text += "---------------------------------------\n";
+  text += "ITEMS                            AMOUNT\n";
+  text += "---------------------------------------\n";
+
+  const ITEM_COL = 26, QTY_COL = 6, AMT_COL = 7;
+
+  for(let i in qty){
+    if(qty[i]>0){
+      let name =
+        i==="spl"?"Spl Chicken Pav Baji":
+        i==="pav"?"Chicken Pav Baji":
+        i==="chat"?"Chicken Chat":
+        i==="puri"?"Chicken Puri":"Parcel";
+
+      let itemPart = name.padEnd(ITEM_COL," ");
+      let qtyPart  = ("x"+qty[i]).padStart(QTY_COL," ");
+      let amtPart  = String(qty[i]*prices[i]).padStart(AMT_COL," ");
+
+      text += itemPart + qtyPart + amtPart + "\n";
+    }
+  }
+
+  text += "---------------------------------------\n";
+  text += "TOTAL".padEnd(ITEM_COL+QTY_COL," ") + String(total).padStart(AMT_COL," ") + "\n";
+  text += `Payment: ${pay}\n`;
+  text += "---------------------------------------\n";
+  text += "Thank you, visit again 😊\n";
+
+  document.getElementById("billText").innerText = text;
+  saveTransaction(text);
+  window.print();
+
+  dailySales += total;
+  localStorage.setItem("dailySales", dailySales);
+  document.getElementById("dailySales").innerText = dailySales;
+
+  billNo++;
+  localStorage.setItem("billNo", billNo);
+  document.getElementById("billNoDisplay").innerText = billNo;
+
+  clearBill();
+}
+
+function clearBill(){
+  for(let i in qty){
+    qty[i]=0;
+    document.getElementById(i).innerText=0;
+  }
+  total=0;
+  document.getElementById("total").innerText=0;
+}
+
+function resetSales(){
+  if(confirm("Reset total sales?")){
+    dailySales=0;
+    localStorage.setItem("dailySales",0);
+    document.getElementById("dailySales").innerText=0;
+  }
+}
+
+function setBillNo(){
+  let v=parseInt(document.getElementById("setBill").value);
+  if(!v||v<=0){alert("Enter valid bill number");return}
+  billNo=v;
+  localStorage.setItem("billNo",billNo);
+  document.getElementById("billNoDisplay").innerText=billNo;
+  document.getElementById("setBill").value="";
+}
+
+function saveTransaction(t){
+  history.unshift(t);
+  localStorage.setItem("history",JSON.stringify(history));
+  renderHistory();
+}
+
+function renderHistory(){
+  let h=document.getElementById("history");
+  h.innerHTML="";
+  history.forEach(t=>{
+    h.innerHTML+=`<div><pre>${t}</pre></div>`;
+  });
+}
+
+function clearHistory(){
+  if(confirm("Clear history?")){
+    history=[];
+    localStorage.removeItem("history");
+    renderHistory();
+  }
+}
+</script>
+
+</body>
+</html>
+
