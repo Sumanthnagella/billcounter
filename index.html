@@ -8,6 +8,10 @@
 <style>
 * { box-sizing: border-box; }
 
+/* ======================
+   NORMAL WEBSITE STYLES
+   ====================== */
+
 body {
   font-family: Arial, sans-serif;
   background: #fff3eb;
@@ -131,47 +135,54 @@ select, input {
   padding: 6px 0;
 }
 
-/* PRINT ONLY BILL */
+/* ======================
+   PRINT – 58mm THERMAL
+   ====================== */
+
 @media print {
   @page {
-    size: 58mm auto;   /* BT-IX = 58mm */
+    size: 58mm auto;
     margin: 0;
   }
 
-  body * {
+  .no-print {
     display: none !important;
   }
 
-  #printArea, #printArea * {
-    display: block !important;
-  }
-
   #printArea {
+    display: block !important;
     width: 58mm;
     margin: 0;
     padding: 0;
   }
 
   pre {
-    font-family: monospace;
-    font-size: 12px;
-    white-space: pre-wrap;
+    font-family: "Courier New", monospace;
+    font-size: 11px;
+    line-height: 1.25;
+    white-space: pre;
+  }
+
+  .cut-gap {
+    height: 18mm;
   }
 }
-
 </style>
 </head>
 
 <body>
 
-<!-- HEADER -->
+<!-- ======================
+     WEBSITE UI (UNCHANGED)
+     ====================== -->
+<div class="no-print">
+
 <div class="header">
   <img src="logo.jpg">
   <h2>CHICKEN TREATS</h2>
   <p>Bill No: <span id="billNoDisplay"></span></p>
 </div>
 
-<!-- ITEMS -->
 <div class="grid">
 
 <div class="item">
@@ -231,12 +242,10 @@ select, input {
 
 </div>
 
-<!-- TOTAL -->
 <div class="total">
   Bill Total ₹<span id="total">0</span>
 </div>
 
-<!-- PAYMENT -->
 <select id="payment">
   <option value="CASH">CASH</option>
   <option value="UPI">UPI</option>
@@ -245,30 +254,32 @@ select, input {
 <button class="btn green" onclick="previewBill()">PREVIEW & PRINT</button>
 <button class="btn red" onclick="clearBill()">CLEAR BILL</button>
 
-<!-- SALES -->
 <div class="box">
   <h3>Total Sales</h3>
   ₹<b><span id="dailySales">0</span></b>
   <button class="btn gray" onclick="resetSales()">Reset Sales</button>
 </div>
 
-<!-- BILL NUMBER CONTROL -->
 <div class="box">
   <h3>Set Bill Number</h3>
   <input type="number" id="setBill" placeholder="Enter Bill Number">
   <button class="btn gray" onclick="setBillNo()">Update Bill No</button>
 </div>
 
-<!-- HISTORY -->
 <div class="box">
   <h3>Transaction History</h3>
   <div class="history" id="history"></div>
   <button class="btn red" onclick="clearHistory()">Clear History</button>
 </div>
 
-<!-- PRINT AREA -->
+</div>
+
+<!-- ======================
+     PRINT AREA ONLY
+     ====================== -->
 <div id="printArea" style="display:none">
-<pre id="billText" style="font-family: monospace; font-size:14px;"></pre>
+<pre id="billText"></pre>
+<div class="cut-gap"></div>
 </div>
 
 <script>
@@ -292,46 +303,43 @@ function update(i){
 }
 
 function previewBill(){
-  if(total === 0){ alert("Add items first"); return; }
+  if(total===0){ alert("Add items first"); return; }
 
+  const LINE = "----------------------------";
   let d = new Date();
-  let date = d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
-  let time = d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
-  let pay = document.getElementById("payment").value;
 
   let text = "";
-  text += "            CHICKEN TREATS\n";
-  text += "---------------------------------------\n";
-  text += `Date: ${date}\n`;
-  text += `Time: ${time}\n`;
+  text += "      CHICKEN TREATS\n";
+  text += LINE+"\n";
+  text += `Date: ${d.toLocaleDateString("en-GB")}\n`;
+  text += `Time: ${d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}\n`;
   text += `Bill No: ${billNo}\n`;
-  text += "---------------------------------------\n";
-  text += "ITEMS                            AMOUNT\n";
-  text += "---------------------------------------\n";
-
-  const ITEM_COL = 26, QTY_COL = 6, AMT_COL = 7;
+  text += LINE+"\n";
+  text += "ITEM        QTY   AMT\n";
+  text += LINE+"\n";
 
   for(let i in qty){
     if(qty[i]>0){
       let name =
-        i==="spl"?"Spl Chicken Pav Baji":
-        i==="pav"?"Chicken Pav Baji":
-        i==="chat"?"Chicken Chat":
-        i==="puri"?"Chicken Puri":"Parcel";
+        i==="spl"?"Spl Pav":
+        i==="pav"?"Pav Baji":
+        i==="chat"?"Chat":
+        i==="puri"?"Puri":"Parcel";
 
-      let itemPart = name.padEnd(ITEM_COL," ");
-      let qtyPart  = ("x"+qty[i]).padStart(QTY_COL," ");
-      let amtPart  = String(qty[i]*prices[i]).padStart(AMT_COL," ");
-
-      text += itemPart + qtyPart + amtPart + "\n";
+      text +=
+        name.padEnd(12) +
+        String(qty[i]).padStart(4) +
+        String(qty[i]*prices[i]).padStart(8) +
+        "\n";
     }
   }
 
-  text += "---------------------------------------\n";
-  text += "TOTAL".padEnd(ITEM_COL+QTY_COL," ") + String(total).padStart(AMT_COL," ") + "\n";
-  text += `Payment: ${pay}\n`;
-  text += "---------------------------------------\n";
-  text += "Thank you, visit again 😊\n";
+  text += LINE+"\n";
+  text += "TOTAL".padEnd(16)+String(total).padStart(8)+"\n";
+  text += LINE+"\n";
+  text += "Payment: CASH\n";
+  text += LINE+"\n";
+  text += "Thank you, visit again :)\n";
 
   document.getElementById("billText").innerText = text;
   saveTransaction(text);
@@ -399,3 +407,5 @@ function clearHistory(){
 
 </body>
 </html>
+
+
