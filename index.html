@@ -133,15 +133,32 @@ select, input {
 
 /* PRINT ONLY BILL */
 @media print {
-  body * { display: none !important; }
-  #printArea, #printArea * { display: block !important; }
+  @page {
+    size: 58mm auto;   /* BT-IX = 58mm */
+    margin: 0;
+  }
+
+  body * {
+    display: none !important;
+  }
+
+  #printArea, #printArea * {
+    display: block !important;
+  }
+
   #printArea {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
+    width: 58mm;
+    margin: 0;
+    padding: 0;
+  }
+
+  pre {
+    font-family: monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
   }
 }
+
 </style>
 </head>
 
