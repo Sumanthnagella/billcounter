@@ -131,31 +131,15 @@ select, input {
   padding: 6px 0;
 }
 
-/* ===== THERMAL PRINT SETTINGS (80mm) ===== */
+/* PRINT ONLY BILL */
 @media print {
-  @page {
-    size: 80mm auto;
-    margin: 0;
-  }
-
-  body * {
-    display: none !important;
-  }
-
-  #printArea, #printArea * {
-    display: block !important;
-  }
-
+  body * { display: none !important; }
+  #printArea, #printArea * { display: block !important; }
   #printArea {
-    width: 80mm;
-    margin: 0;
-    padding: 0;
-  }
-
-  pre {
-    font-family: monospace;
-    font-size: 12px;
-    white-space: pre-wrap;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
   }
 }
 </style>
@@ -251,9 +235,23 @@ select, input {
   <button class="btn gray" onclick="resetSales()">Reset Sales</button>
 </div>
 
+<!-- BILL NUMBER CONTROL -->
+<div class="box">
+  <h3>Set Bill Number</h3>
+  <input type="number" id="setBill" placeholder="Enter Bill Number">
+  <button class="btn gray" onclick="setBillNo()">Update Bill No</button>
+</div>
+
+<!-- HISTORY -->
+<div class="box">
+  <h3>Transaction History</h3>
+  <div class="history" id="history"></div>
+  <button class="btn red" onclick="clearHistory()">Clear History</button>
+</div>
+
 <!-- PRINT AREA -->
 <div id="printArea" style="display:none">
-<pre id="billText"></pre>
+<pre id="billText" style="font-family: monospace; font-size:14px;"></pre>
 </div>
 
 <script>
@@ -263,9 +261,11 @@ let total = 0;
 
 let billNo = parseInt(localStorage.getItem("billNo")) || 1;
 let dailySales = parseInt(localStorage.getItem("dailySales")) || 0;
+let history = JSON.parse(localStorage.getItem("history")) || [];
 
 document.getElementById("billNoDisplay").innerText = billNo;
 document.getElementById("dailySales").innerText = dailySales;
+renderHistory();
 
 function addItem(i,p){ qty[i]++; total+=p; update(i); }
 function removeItem(i){ if(qty[i]>0){ qty[i]--; total-=prices[i]; update(i); } }
@@ -278,32 +278,46 @@ function previewBill(){
   if(total === 0){ alert("Add items first"); return; }
 
   let d = new Date();
-  let date = d.toLocaleDateString("en-GB");
+  let date = d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
   let time = d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
   let pay = document.getElementById("payment").value;
 
-  let t = "";
-  t += "      CHICKEN TREATS\n";
-  t += "------------------------------\n";
-  t += `Date: ${date}\n`;
-  t += `Time: ${time}\n`;
-  t += `Bill No: ${billNo}\n`;
-  t += "------------------------------\n";
+  let text = "";
+  text += "            CHICKEN TREATS\n";
+  text += "---------------------------------------\n";
+  text += `Date: ${date}\n`;
+  text += `Time: ${time}\n`;
+  text += `Bill No: ${billNo}\n`;
+  text += "---------------------------------------\n";
+  text += "ITEMS                            AMOUNT\n";
+  text += "---------------------------------------\n";
+
+  const ITEM_COL = 26, QTY_COL = 6, AMT_COL = 7;
 
   for(let i in qty){
     if(qty[i]>0){
-      let name = i==="spl"?"Spl Pav":i==="pav"?"Pav Baji":i==="chat"?"Chat":i==="puri"?"Puri":"Parcel";
-      t += `${name} x${qty[i]}  ${qty[i]*prices[i]}\n`;
+      let name =
+        i==="spl"?"Spl Chicken Pav Baji":
+        i==="pav"?"Chicken Pav Baji":
+        i==="chat"?"Chicken Chat":
+        i==="puri"?"Chicken Puri":"Parcel";
+
+      let itemPart = name.padEnd(ITEM_COL," ");
+      let qtyPart  = ("x"+qty[i]).padStart(QTY_COL," ");
+      let amtPart  = String(qty[i]*prices[i]).padStart(AMT_COL," ");
+
+      text += itemPart + qtyPart + amtPart + "\n";
     }
   }
 
-  t += "------------------------------\n";
-  t += `TOTAL: ${total}\n`;
-  t += `PAYMENT: ${pay}\n`;
-  t += "------------------------------\n";
-  t += "Thank you 😊\n";
+  text += "---------------------------------------\n";
+  text += "TOTAL".padEnd(ITEM_COL+QTY_COL," ") + String(total).padStart(AMT_COL," ") + "\n";
+  text += `Payment: ${pay}\n`;
+  text += "---------------------------------------\n";
+  text += "Thank you, visit again 😊\n";
 
-  document.getElementById("billText").innerText = t;
+  document.getElementById("billText").innerText = text;
+  saveTransaction(text);
   window.print();
 
   dailySales += total;
@@ -327,14 +341,44 @@ function clearBill(){
 }
 
 function resetSales(){
-  if(confirm("Reset sales?")){
+  if(confirm("Reset total sales?")){
     dailySales=0;
     localStorage.setItem("dailySales",0);
     document.getElementById("dailySales").innerText=0;
+  }
+}
+
+function setBillNo(){
+  let v=parseInt(document.getElementById("setBill").value);
+  if(!v||v<=0){alert("Enter valid bill number");return}
+  billNo=v;
+  localStorage.setItem("billNo",billNo);
+  document.getElementById("billNoDisplay").innerText=billNo;
+  document.getElementById("setBill").value="";
+}
+
+function saveTransaction(t){
+  history.unshift(t);
+  localStorage.setItem("history",JSON.stringify(history));
+  renderHistory();
+}
+
+function renderHistory(){
+  let h=document.getElementById("history");
+  h.innerHTML="";
+  history.forEach(t=>{
+    h.innerHTML+=`<div><pre>${t}</pre></div>`;
+  });
+}
+
+function clearHistory(){
+  if(confirm("Clear history?")){
+    history=[];
+    localStorage.removeItem("history");
+    renderHistory();
   }
 }
 </script>
 
 </body>
 </html>
-
