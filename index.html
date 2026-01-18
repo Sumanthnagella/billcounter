@@ -239,6 +239,27 @@ select, input {
     <button onclick="addItem('parcel',10)">+</button>
   </div>
 </div>
+<div class="item">
+  <img src="extra_pav.jpeg">
+  <b>Extra Pav</b>
+  <div class="price">₹20</div>
+  <div class="controls">
+    <button onclick="removeItem('extrapav')">−</button>
+    <span id="extrapav">0</span>
+    <button onclick="addItem('extrapav',20)">+</button>
+  </div>
+</div>
+
+<div class="item">
+  <img src="water_bottle.jpeg">
+  <b>Water Bottle</b>
+  <div class="price">₹10</div>
+  <div class="controls">
+    <button onclick="removeItem('water')">−</button>
+    <span id="water">0</span>
+    <button onclick="addItem('water',10)">+</button>
+  </div>
+</div>
 
 </div>
 
@@ -285,6 +306,12 @@ select, input {
 <script>
 let prices = { spl:120, pav:100, chat:60, puri:50, parcel:10 };
 let qty = { spl:0, pav:0, chat:0, puri:0, parcel:0 };
+prices.extrapav = 20;
+prices.water = 10;
+
+qty.extrapav = 0;
+qty.water = 0;
+
 let total = 0;
 
 let billNo = parseInt(localStorage.getItem("billNo")) || 1;
@@ -324,7 +351,10 @@ function previewBill(){
         i==="spl"?"Spl Pav":
         i==="pav"?"Pav Baji":
         i==="chat"?"Chat":
-        i==="puri"?"Puri":"Parcel";
+        i==="puri"?"Puri":
+        i==="extrapav"?"Extra Pav":
+        i==="water"?"Water Bottle":
+        "Parcel";
 
       text +=
         name.padEnd(12) +
