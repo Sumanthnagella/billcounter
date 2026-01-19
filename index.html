@@ -157,11 +157,15 @@ select, input {
   }
 
   pre {
-    font-family: "Courier New", monospace;
-    font-size: 11px;
-    line-height: 1.25;
-    white-space: pre;
+  font-family: "Courier New", monospace;
+  font-size: 20px;          /* BIG FONT */
+  line-height: 1.7;         /* GOOD GAP */
+  font-weight: bold;        /* DARK PRINT */
+  transform: scale(1.12);   /* MAKE OVERALL BIGGER */
+  transform-origin: top left;
+  white-space: pre;
   }
+
 
   .cut-gap {
     height: 18mm;
@@ -336,7 +340,9 @@ function previewBill(){
   let d = new Date();
 
   let text = "";
-  text += "      CHICKEN TREATS\n";
+  text += "   CHICKEN TREATS\n";
+  text += "-----------------\n";
+
   text += LINE+"\n";
   text += `Date: ${d.toLocaleDateString("en-GB")}\n`;
   text += `Time: ${d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}\n`;
@@ -371,7 +377,9 @@ function previewBill(){
   text += LINE+"\n";
   text += "Thank you, visit again :)\n";
 
-  document.getElementById("billText").innerText = text;
+  let twoCopies = text + "\n\n\n" + text;
+  document.getElementById("billText").innerText = twoCopies;
+
   saveTransaction(text);
   window.print();
 
@@ -437,5 +445,3 @@ function clearHistory(){
 
 </body>
 </html>
-
-
